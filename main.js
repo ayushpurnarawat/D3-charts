@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import * as d3 from 'd3'
+import {line,curveMonotoneX} from 'd3-shape'
 import AxisMain from './axis'
+import { select } from 'd3'
 
 class Main extends Component
 {
@@ -13,13 +15,28 @@ class Main extends Component
             { name: 'May', value: 80 },
             { name: 'Jun', value: 30 },
             { name: 'July', value: 0 },
-            { name: 'Aug', value: 20 },
+            { name: 'Aug', value: 70 },
             { name: 'Sep', value: 10 },
             { name: 'Oct', value: 55 },
             { name: 'Nov', value: 60 },
             { name: 'Dec', value: 80 },
           ]
     }
+    updateChart(lineGenerator,data) {
+        // const {
+        //       lineGenerator, xScale, yScale, data,
+        //     } = this.props;
+    
+        const t = d3.transition().duration(1000);
+    
+        const line = d3.select('#line');
+        const dot = d3.selectAll('.circle');
+    
+        line
+          .datum(data)
+          .transition(t)
+          .attr('d', lineGenerator);
+        }
     chart=()=>{
         const { data} = this.state
         const margin = {top:20,left:20,bottom:20,right:20}
@@ -50,9 +67,8 @@ class Main extends Component
             // .ticks(data.length)
             .scale(y_scale)
 
-            const line = d3.line()
-            .x(function(d,i){return x_scale(d.name)})
-            .y(function(d,i){return y_scale(d.value)})       
+            
+            
         svg.append('g')
         .attr("transform","translate(30, 0)")
         .call(Y_AXIS)
@@ -72,18 +88,33 @@ class Main extends Component
         .attr('height',height)
         .attr('fill','red')
         .attr('opacity',.3)
+
+        /*--------------------------------LINE DRAWAING---------------------------------- */
+        const lineGenerator =d3.line()
+            .x(function(d,i){return x_scale(d.name)})
+            .y(function(d,i){return y_scale(d.value)})  
+            .curve(curveMonotoneX)
+
+            const initialData = data.map(d => ({
+                name: d.name,
+                value: 0
+              }));
+        select('g')
+        .append('path')
+        .datum(initialData)
+        .attr('id', 'line')
+      .attr('stroke', 'black')
+      .attr('stroke-width', 2)
+      .attr('fill', 'none')
+      .attr('d', lineGenerator);
+        this.updateChart(lineGenerator,data)
     }
     render(){
         
         return(
             <div>
                 FinalChart.js
-                {/* <AxisMain 
-                data={this.state.data} 
-                x_scale={x_scale}
-                y_scale={y_scale}
-                svg={svg}
-                /> */}
+                
                 <button onClick={this.chart}>button</button>
             </div>
         )
